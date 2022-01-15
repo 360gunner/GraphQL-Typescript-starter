@@ -1,0 +1,19 @@
+
+query {
+  user(id:"61e1e6db0b3b1f002151334f")
+  {id}
+  books{id,name}
+}
+
+mutation {
+  deleteUser(id:"61e1e6db0b3b1f002151334f"){id}
+  createUser(
+    input: {
+      name: "Houssam eddine"
+      password: "Houssem123456"
+      email: "hkentache3@gmail.com"
+    }
+  ) {
+    id,name
+  }
+}
