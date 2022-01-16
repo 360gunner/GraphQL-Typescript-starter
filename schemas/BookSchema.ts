@@ -6,22 +6,22 @@ import { gql } from "apollo-server";
 
 export const BookSchema = gql`
   type Book {
-    id: ID!,
-    name: String!,
+    id: ID!
+    name: String!
     description: String!
   }
 
   input CreateBookInput {
-    name: String!,
+    name: String!
     description: String!
   }
 
   input UpdateBookInput {
-    id: String!,
-    name: String!,
+    id: String!
+    name: String!
     description: String!
   }
-  
+
   extend type Query {
     books: [Book]
     book(id: String!): Book
@@ -32,4 +32,10 @@ export const BookSchema = gql`
     updateBook(input: UpdateBookInput!): Book
     deleteBook(id: String!): Book
   }
-`
+
+  extend type Subscription {
+    bookCreated: Book
+    bookUpdated: Book
+    bookDeleted: Book
+  }
+`;

@@ -1,9 +1,14 @@
-import BookModel, { IBook } from "../models/BookModel"
+import BookModel, { IBook } from "../models/BookModel";
 import { ApolloError } from "apollo-server";
-
+import { pubsub } from "../graphql";
+import {
+  BOOK_CREATED,
+  BOOK_DELETED,
+  BOOK_UPDATED,
+} from "../subscriptions/BookSubscription";
 /**
- * 
- * @description holds crud operations for the book entity 
+ *
+ * @description holds crud operations for the book entity
  */
 
 /**
@@ -11,23 +16,23 @@ import { ApolloError } from "apollo-server";
  * @param connection database connection
  * @returns {IBook[]} book list
  */
-export const getAllBooks = async (connection) => { 
+export const getAllBooks = async (connection) => {
   let list: IBook[];
 
   try {
     list = await BookModel(connection).find();
     if (list != null && list.length > 0) {
-      list = list.map(u => {
-        return u.transform()
-      }); 
+      list = list.map((u) => {
+        return u.transform();
+      });
     }
-  } catch(error) {
+  } catch (error) {
     console.error("> getAllBooks error: ", error);
     throw new ApolloError("Error retrieving all books");
   }
 
   return list;
-}
+};
 
 /**
  * gets book by id
@@ -43,13 +48,13 @@ export const getBook = async (connection, id: string) => {
     if (book != null) {
       book = book.transform();
     }
-  } catch(error) {
+  } catch (error) {
     console.error("> getBook error: ", error);
     throw new ApolloError("Error retrieving book with id: " + id);
   }
 
   return book;
-}
+};
 
 /**
  * creates book
@@ -59,16 +64,16 @@ export const getBook = async (connection, id: string) => {
  */
 export const createBook = async (connection, args: IBook) => {
   let createdBook: IBook;
-  
+
   try {
     createdBook = (await BookModel(connection).create(args)).transform();
-  } catch(error) {
+  } catch (error) {
     console.error("> createBook error: ", error);
     throw new ApolloError("Error saving book with name: " + args.name);
   }
-
+  pubsub.publish(BOOK_CREATED, { bookCreated: createdBook });
   return createdBook;
-}
+};
 
 /**
  * deletes book
@@ -78,19 +83,19 @@ export const createBook = async (connection, args: IBook) => {
  */
 export const deleteBook = async (connection, id: string) => {
   let deletedBook: IBook | null;
-  
+
   try {
     deletedBook = await BookModel(connection).findByIdAndRemove(id);
     if (deletedBook != null) {
       deletedBook = deletedBook.transform();
     }
-  } catch(error) {
+  } catch (error) {
     console.error("> deleteBook error: ", error);
     throw new ApolloError("Error deleting book with id: " + id);
   }
-
+  pubsub.publish(BOOK_DELETED, { bookDeleted: deletedBook });
   return deletedBook;
-}
+};
 
 /**
  * updates book
@@ -100,21 +105,24 @@ export const deleteBook = async (connection, id: string) => {
  */
 export const updateBook = async (context, args: IBook) => {
   let updatedBook: IBook | null;
-  
+
   try {
-    updatedBook = await BookModel(context).findByIdAndUpdate(args.id, 
+    updatedBook = await BookModel(context).findByIdAndUpdate(
+      args.id,
       {
-        name: args.name, 
-        description: args.description
-      }, {new: true});
-      
+        name: args.name,
+        description: args.description,
+      },
+      { new: true }
+    );
+
     if (updatedBook != null) {
       updatedBook = updatedBook.transform();
     }
-  } catch(error) {
+  } catch (error) {
     console.error("> updateBook error: ", error);
     throw new ApolloError("Error updating book with id: " + args.id);
   }
-
+  pubsub.publish(BOOK_UPDATED, { bookUpdated: updatedBook });
   return updatedBook;
-}
+};
