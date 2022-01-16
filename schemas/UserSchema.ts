@@ -37,5 +37,7 @@ export const UserSchema = gql`
 
   extend type Subscription {
     userCreated: User
+    userUpdated: User
+    userDeleted: User
   }
 `;

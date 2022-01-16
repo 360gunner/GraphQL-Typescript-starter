@@ -1,8 +1,12 @@
 import UserModel, { IUser } from "../models/UserModel";
 import { ApolloError } from "apollo-server";
 import { pubsub } from "../graphql";
+import {
+  USER_CREATED,
+  USER_UPDATED,
+  USER_DELETED,
+} from "../subscriptions/UserSubscription";
 
-const USER_CREATED = "USER_CREATED";
 /**
  *
  * @description holds crud operations for the user entity
@@ -90,7 +94,7 @@ export const deleteUser = async (connection, id: string) => {
     console.error("> deleteUser error: ", error);
     throw new ApolloError("Error deleting user with id: " + id);
   }
-
+  pubsub.publish(USER_DELETED, { userDeleted: deletedUser });
   return deletedUser;
 };
 
@@ -120,6 +124,6 @@ export const updateUser = async (context, args: IUser) => {
     console.error("> updateUser error: ", error);
     throw new ApolloError("Error updating user with id: " + args.id);
   }
-
+  pubsub.publish(USER_UPDATED, { userUpdated: updatedUser });
   return updatedUser;
 };
